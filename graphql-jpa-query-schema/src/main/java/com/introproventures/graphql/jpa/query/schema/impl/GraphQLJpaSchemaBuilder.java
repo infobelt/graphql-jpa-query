@@ -115,7 +115,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private String description = "GraphQL Schema for all entities in this JPA application";
 
     private boolean isUseDistinctParameter = false;
-    private boolean isDefaultDistinct = false;
+    private boolean isDefaultDistinct = true;
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -263,18 +263,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                .collect(Collectors.toList())
             )
             .fields(managedType.getAttributes().stream()
-                                               .filter(this::isToOne)
+                                               .filter(Attribute::isAssociation)
                                                .filter(this::isNotIgnored)
                                                .filter(this::isNotIgnoredFilter)
                                                .map(this::getInputObjectField)
                                                .collect(Collectors.toList())
-            )
-            .fields(managedType.getAttributes().stream()
-                                                .filter(this::isToMany)
-                                                .filter(this::isNotIgnored)
-                                                .filter(this::isNotIgnoredFilter)
-                                                .map(this::getInputObjectField)
-                                                .collect(Collectors.toList())
             )
             .build();
         
@@ -332,7 +325,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .collect(Collectors.toList())
             )
             .fields(managedType.getAttributes().stream()
-                .filter(this::isToOne)
+                .filter(this::isValidAssociation)    
                 .filter(this::isNotIgnored)
                 .filter(this::isNotIgnoredFilter)
                 .map(this::getWhereInputRelationField)
@@ -759,6 +752,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED;
     }
 
+    protected final boolean isValidAssociation(Attribute<?,?> attribute) {
+        return isOneToMany(attribute) || isToOne(attribute);
+    }
+
+    
     
     private String getSchemaDescription(Member member) {
         if (member instanceof AnnotatedElement) {
