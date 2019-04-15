@@ -70,7 +70,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
             // between requests with different search criteria. This looks like a Hibernate bug... 
             entityManager.clear();
             
-            return getQuery(environment, field, true)
+            return getQuery(environment, field, isDefaultDistinct())
                 //.setHint("javax.persistence.fetchgraph", entityGraph) // TODO: fix runtime exception
                 .getResultList();
         }
@@ -140,7 +140,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         // optionally add default ordering 
         mayBeAddDefaultOrderBy(query, join, cb);
         
-        return entityManager.createQuery(query.distinct(true));
+        return entityManager.createQuery(query.distinct(isDistinct));
         
     }
     
